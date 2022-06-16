@@ -64,7 +64,7 @@ if Framework.GetConfig().OxInventory then
 		if resourceName == 'ox_inventory' or resourceName == GetCurrentResourceName() then
 			local stashes = MySQL.query.await('SELECT * FROM addon_inventory')
 
-			for i=1, #stashes do
+			for i = 1, #stashes do
 				local stash = stashes[i]
 				local jobStash = stash.name:find('society') and string.sub(stash.name, 9)
 				OX_INVENTORY:RegisterStash(stash.name, stash.label, 1000, 10000000, stash.shared == 0 and true or false, jobStash)
@@ -201,13 +201,13 @@ function GetDataStore(name, owner)
 end
 
 function GetDataStoreOwners(name)
-	local identifiers = {}
+	local citizenids = {}
 
 	for i=1, #DataStores[name], 1 do
-		table.insert(identifiers, DataStores[name][i].owner)
+		table.insert(citizenids, DataStores[name][i].owner)
 	end
 
-	return identifiers
+	return citizenids
 end
 
 function GetSharedDataStore(name)
@@ -233,12 +233,12 @@ AddEventHandler('JLRP-Framework:playerLoaded', function(playerId, xPlayer)
 
 	for i=1, #AccountsIndex, 1 do
 		local name    = AccountsIndex[i]
-		local account = GetAccount(name, xPlayer.identifier)
+		local account = GetAccount(name, xPlayer.citizenid)
 
 		if account == nil then
-			MySQL.insert('INSERT INTO addon_account_data (account_name, money, owner) VALUES (?, ?, ?)', {name, 0, xPlayer.identifier})
+			MySQL.insert('INSERT INTO addon_account_data (account_name, money, owner) VALUES (?, ?, ?)', {name, 0, xPlayer.citizenid})
 
-			account = CreateAddonAccount(name, xPlayer.identifier, 0)
+			account = CreateAddonAccount(name, xPlayer.citizenid, 0)
 			Accounts[name][#Accounts[name] + 1] = account
 		end
 
@@ -252,10 +252,10 @@ AddEventHandler('JLRP-Framework:playerLoaded', function(playerId, xPlayer)
 
 	for i=1, #InventoriesIndex, 1 do
 		local name      = InventoriesIndex[i]
-		local inventory = GetInventory(name, xPlayer.identifier)
+		local inventory = GetInventory(name, xPlayer.citizenid)
 
 		if inventory == nil then
-			inventory = CreateAddonInventory(name, xPlayer.identifier, {})
+			inventory = CreateAddonInventory(name, xPlayer.citizenid, {})
 			table.insert(Inventories[name], inventory)
 		end
 
@@ -265,14 +265,14 @@ AddEventHandler('JLRP-Framework:playerLoaded', function(playerId, xPlayer)
 	xPlayer.set('addonInventories', addonInventories)
 	
 	--DataStore
-	for i=1, #DataStoresIndex, 1 do
+	for i = 1, #DataStoresIndex, 1 do
 		local name = DataStoresIndex[i]
-		local dataStore = GetDataStore(name, xPlayer.identifier)
+		local dataStore = GetDataStore(name, xPlayer.citizenid)
 
 		if not dataStore then
-			MySQL.insert('INSERT INTO datastore_data (name, owner, data) VALUES (?, ?, ?)', {name, xPlayer.identifier, '{}'})
+			MySQL.insert('INSERT INTO datastore_data (name, owner, data) VALUES (?, ?, ?)', {name, xPlayer.citizenid, '{}'})
 
-			DataStores[name][#DataStores[name] + 1] = CreateDataStore(name, xPlayer.identifier, {})
+			DataStores[name][#DataStores[name] + 1] = CreateDataStore(name, xPlayer.citizenid, {})
 		end
 	end
 end)
